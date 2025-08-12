@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,8 +15,10 @@ import (
 )
 
 const (
-	reportsMask      = "reports/*.csv"
-	periodDateFormat = "01.2006"
+	reportCollectionMask   = "reports/*.csv"
+	periodDateFormat       = "01.2006"
+	periodBorderDateFormat = "02.01.2006"
+	periodLabel            = "Период выписки:"
 )
 
 func getBasicCSVReader(filePath string) (*csv.Reader, *os.File) {
@@ -62,22 +65,47 @@ func readSlicedCSVFile(filePath string, start uint16, end uint16) [][]string {
 	return records
 }
 
-func findReportByHeaderDate(period string) {
-	files, err := filepath.Glob(reportsMask)
+func getMonthRangeByPeriod(period string) (time.Time, time.Time) {
+	// validate period
+	startOfPeriod, err := time.Parse(periodDateFormat, period)
+	if err != nil {
+		log.Fatal("Invalid period format")
+	}
+
+	nextMonth := time.Date(
+		startOfPeriod.Year(),
+		startOfPeriod.Month()+1,
+		1,
+		0, 0, 0, 0,
+		startOfPeriod.Location(),
+	)
+
+	endOfPeriod := nextMonth.Add(-24 * time.Hour)
+
+	return startOfPeriod, endOfPeriod
+}
+
+func findReportByHeaderPeriod(period string) (string, error) {
+	startOfPeriod, endOfPeriod := getMonthRangeByPeriod(period)
+	reports, err := filepath.Glob(reportCollectionMask)
 
 	if err != nil {
 		log.Fatal("Reports not found")
 	}
 
-	for _, file := range files {
+	periodValue := startOfPeriod.Format(periodBorderDateFormat) + "-" + endOfPeriod.Format(periodBorderDateFormat)
+
+	for _, reportPath := range reports {
 		// read report headers
-		records := readSlicedCSVFile(file, 0, 15)
+		records := readSlicedCSVFile(reportPath, 0, 15)
 		for _, row := range records {
-			if slices.Contains(row, "Период выписки:") {
-				fmt.Println(row)
+			if slices.Contains(row, periodLabel) && slices.Contains(row, periodValue) {
+				return reportPath, nil
 			}
 		}
 	}
+
+	return "", errors.New("report not found")
 }
 
 func main() {
@@ -86,14 +114,12 @@ func main() {
 	fmt.Println("Please enter [MM.YYYY] report period:")
 	fmt.Scanln(&reportPeriod)
 
-	// validation
-	_, err := time.Parse(periodDateFormat, reportPeriod)
+	reportPath, err := findReportByHeaderPeriod(reportPeriod)
+
 	if err != nil {
-		log.Fatal("Invalid period format")
+		log.Fatal(err)
 	}
 
-	findReportByHeaderDate(reportPeriod)
-
 	// records := readSlicedCSVFile("/Users/vk/Projects/pf_reports/budget-collector/Vpsk_72482430.csv", 0, 15)
-	// fmt.Println(records)
+	fmt.Println(reportPath)
 }
