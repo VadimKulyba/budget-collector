@@ -75,10 +75,34 @@ The generated `output.csv` contains:
 - **Input Reports**: `reports/*.csv`
 - **Output File**: `output.csv` (generated in the current directory)
 
-## Dependencies
+## Project Structure
 
-- `golang.org/x/text`: For handling Windows-1251 character encoding
-- Standard Go libraries for CSV processing and file operations
+The project follows Go best practices with a clean, modular architecture:
+
+```
+budget-collector/
+├── cmd/                           # Application entry points
+│   └── main.go                   # Main application logic and CLI interface
+├── pkg/                          # Public packages (can be imported by other projects)
+│   ├── csv/                      # CSV reading and writing utilities
+│   │   ├── reader.go             # CSV file reading with Windows-1251 encoding support
+│   │   └── writer.go             # CSV file writing with European formatting
+│   ├── models/                   # Data structures and type definitions
+│   │   └── report.go             # Transaction models and report structures
+│   ├── banking/                  # Banking-specific utilities
+│   │   └── pjcbby2x/             # PJCBBY2X provider
+│   └── utils/                    # General utility functions
+│       ├── currency/             # Currency and money formatting utilities
+│       │   └── cash_utils.go     # Money string conversion (BYN format)
+│       └── datetime/             # Date and time utilities
+│           └── period_utils.go   # Period parsing and validation
+├── reports/                      # Input CSV files directory
+│   └── *.csv                     # Bank report files to process
+├── go.mod                        # Go module definition and dependencies
+├── go.sum                        # Dependency checksums
+├── README.md                     # Project documentation
+└── .gitignore                    # Git ignore patterns
+```
 
 ## Error Handling
 
@@ -93,3 +117,4 @@ The application includes error handling for:
 - Currently supports only BYN currency
 - Subcategory field is not populated
 - Support only one input file
+- Choose target currency
