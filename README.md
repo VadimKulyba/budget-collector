@@ -118,3 +118,4 @@ The application includes error handling for:
 - Subcategory field is not populated
 - Support only one input file
 - Choose target currency
+- Alert for refunds (WB)
