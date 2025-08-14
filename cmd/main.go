@@ -275,6 +275,7 @@ func main() {
 			operation.category,
 			operation.subcategory,
 			moneyToStr(operation.cost),
+			"", // empty column
 			cleanUpQuotes(operation.name),
 		})
 	}
