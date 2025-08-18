@@ -6,6 +6,7 @@ import (
 	"budget-collector/pkg/utils/currency"
 	"budget-collector/pkg/utils/datetime"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"path/filepath"
@@ -15,6 +16,8 @@ import (
 
 const (
 	reportCollectionMask = "reports/*.csv"
+	colorYellow          = "\033[33m"
+	colorReset           = "\033[0m"
 )
 
 const (
@@ -80,6 +83,7 @@ func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
 	}
 
 	var operations []models.MonthlyReportOperation
+	refundsCount := 0
 
 	for _, pm := range paymentMethods {
 		headerMap := make(map[string]int)
@@ -96,8 +100,7 @@ func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
 				strings.Contains(operationName, serviceOperation) ||
 				strings.Contains(operationName, internalTransferOperation)
 
-			if operationCost < 0 && !excludedOperations {
-
+			if !excludedOperations {
 				operation := models.MonthlyReportOperation{
 					Name:        operationName,
 					Date:        records[i][headerMap[operationDateKey]],
@@ -109,10 +112,22 @@ func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
 					Last4:       pm.last4,
 				}
 
-				operations = append(operations, operation)
+				// collect operations
+				if operationCost < 0 {
+					operations = append(operations, operation)
+				} else {
+					// alert for refunds
+					if refundsCount < 1 {
+						fmt.Print(colorYellow)
+						fmt.Println("Please check these transactions, they may be refunds to the card:")
+					}
+					refundsCount += 1
+					fmt.Println(operation)
+				}
 			}
 		}
 	}
 
+	fmt.Print(colorReset)
 	return operations
 }
