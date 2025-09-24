@@ -16,8 +16,11 @@ import (
 
 const (
 	reportCollectionMask = "reports/*.csv"
-	colorYellow          = "\033[33m"
-	colorReset           = "\033[0m"
+)
+
+const (
+	colorYellow = "\033[33m"
+	colorReset  = "\033[0m"
 )
 
 const (
