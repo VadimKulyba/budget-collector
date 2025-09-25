@@ -7,6 +7,7 @@ import (
 
 	"budget-collector/pkg/banking/pjcbby2x"
 	"budget-collector/pkg/csv"
+	"budget-collector/pkg/models"
 	"budget-collector/pkg/utils/currency"
 )
 
@@ -20,16 +21,21 @@ func main() {
 	fmt.Println("Please enter [MM.YYYY] report period:")
 	fmt.Scanln(&reportPeriod)
 
-	reportPath, err := pjcbby2x.FindReportByHeaderPeriod(reportPeriod)
+	reportPaths, reportPathsErr := pjcbby2x.FindReportByHeaderPeriod(reportPeriod)
 
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println("Found report: " + reportPath)
+	if reportPathsErr != nil {
+		log.Fatal(reportPathsErr)
 	}
 
-	records := csv.ReadAllCSVFile(reportPath)
-	monthlyOperations := pjcbby2x.CollectMonthlyReport(records)
+	var monthlyOperations []models.MonthlyReportOperation
+	for _, reportPath := range reportPaths {
+		fmt.Println("Found report: " + reportPath)
+
+		records := csv.ReadAllCSVFile(reportPath)
+		monthlyReport := pjcbby2x.CollectMonthlyReport(records)
+
+		monthlyOperations = append(monthlyOperations, monthlyReport...)
+	}
 
 	var results [][]string
 	for _, operation := range monthlyOperations {

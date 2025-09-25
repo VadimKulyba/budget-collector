@@ -32,6 +32,7 @@ const (
 	operationSumKey      = "Сумма"
 	operationDateKey     = "Дата операции по счету"
 	operationCategoryKey = "Категория операции"
+	operationCurrencyKey = "Валюта"
 )
 
 // excluded operations
@@ -42,7 +43,7 @@ const (
 	internalTransferOperation = "CH Debit BLR MINSK P2P SDBO NO FEE"
 )
 
-func FindReportByHeaderPeriod(period string) (string, error) {
+func FindReportByHeaderPeriod(period string) ([]string, error) {
 	periodRange := datetime.GetMonthRangeByPeriod(period)
 	reports, err := filepath.Glob(reportCollectionMask)
 
@@ -53,17 +54,22 @@ func FindReportByHeaderPeriod(period string) (string, error) {
 	const startHeaderPosition = 0
 	const endHeaderPosition = 15
 
+	var paths []string
 	for _, reportPath := range reports {
 		// read report headers
 		records := csv.ReadSlicedCSVFile(reportPath, startHeaderPosition, endHeaderPosition)
 		for _, row := range records {
 			if slices.Contains(row, periodLabel) && slices.Contains(row, periodRange) {
-				return reportPath, nil
+				paths = append(paths, reportPath)
 			}
 		}
 	}
 
-	return "", errors.New("report not found")
+	if len(paths) == 0 {
+		return paths, errors.New("report not found")
+	} else {
+		return paths, nil
+	}
 }
 
 func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
@@ -111,7 +117,7 @@ func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
 					Category:    CategoryMap[records[i][headerMap[operationCategoryKey]]],
 					Subcategory: "", // TODO
 					Cost:        math.Abs(operationCost),
-					Currency:    "BYN", // TODO
+					Currency:    models.Currency(records[i][headerMap[operationCurrencyKey]]),
 					Last4:       pm.last4,
 				}
 
@@ -122,7 +128,7 @@ func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
 					// alert for refunds
 					if refundsCount < 1 {
 						fmt.Print(colorYellow)
-						fmt.Println("Please check these transactions, they may be refunds to the card:")
+						fmt.Println("Please check these transactions, they may be refunds or income to the card:")
 					}
 					refundsCount += 1
 					fmt.Println(operation)

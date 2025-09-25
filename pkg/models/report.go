@@ -10,6 +10,8 @@ const (
 
 const (
 	BYN Currency = "BYN"
+	USD Currency = "USD"
+	RUB Currency = "RUB"
 )
 
 type MonthlyReportOperation struct {
