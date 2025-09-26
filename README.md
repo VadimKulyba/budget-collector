@@ -116,5 +116,5 @@ The application includes error handling for:
 
 - Currently supports only BYN currency
 - Subcategory field is not populated
-- Support only one input file
+- Support only one bank report type
 - Choose target currency
