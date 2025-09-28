@@ -114,7 +114,8 @@ The application includes error handling for:
 
 ## TODO
 
-- Currently supports only BYN currency
 - Subcategory field is not populated
 - Support only one bank report type
-- Choose target currency
+- Currently supports only BYN input currency
+- Should support currency in any register
+- Add caching for currency rates

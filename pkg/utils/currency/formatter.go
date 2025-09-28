@@ -1,7 +1,6 @@
-// Package currency provides utilities for handling currency operations.
-//
-// This file handles the conversion between string representations of money
-// (with European comma decimal separators) and float64 values used for calculations.
+// This file provides formatting functions for currency values, including
+// conversion between string representations of money (with European comma decimal separators)
+// and float64 values used for calculations.
 package currency
 
 import (

@@ -117,7 +117,7 @@ func CollectMonthlyReport(records [][]string) []models.MonthlyReportOperation {
 					Category:    CategoryMap[records[i][headerMap[operationCategoryKey]]],
 					Subcategory: "", // TODO
 					Cost:        math.Abs(operationCost),
-					Currency:    models.Currency(records[i][headerMap[operationCurrencyKey]]),
+					Currency:    currency.Currency(records[i][headerMap[operationCurrencyKey]]),
 					Last4:       pm.last4,
 				}
 

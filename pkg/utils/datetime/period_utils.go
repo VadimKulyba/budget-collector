@@ -43,3 +43,33 @@ func GetMonthRangeByPeriod(period string) string {
 
 	return startOfPeriod.Format(periodBorderDateFormat) + "-" + endOfPeriod.Format(periodBorderDateFormat)
 }
+
+// GetMiddlePointByPeriod returns the middle point (15th day) of a given period.
+//
+// Args:
+//
+//	period: period string in "MM.YYYY" format (e.g., "12.2024")
+//
+// Returns:
+//
+//	time.Time: the 15th day of the specified month and year
+//
+// Example:
+//
+//	middlePoint := GetMiddlePointByPeriod("12.2024")
+//	// Returns: 2024-12-15 00:00:00 +0000 UTC
+func GetMiddlePointByPeriod(period string) time.Time {
+	// validate period
+	startOfPeriod, err := time.Parse(periodDateFormat, period)
+	if err != nil {
+		log.Fatal("Invalid period format")
+	}
+
+	return time.Date(
+		startOfPeriod.Year(),
+		startOfPeriod.Month(),
+		15,
+		0, 0, 0, 0,
+		startOfPeriod.Location(),
+	)
+}

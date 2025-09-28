@@ -9,6 +9,7 @@ import (
 	"budget-collector/pkg/csv"
 	"budget-collector/pkg/models"
 	"budget-collector/pkg/utils/currency"
+	"budget-collector/pkg/utils/datetime"
 )
 
 func cleanUpQuotes(str string) string {
@@ -17,9 +18,13 @@ func cleanUpQuotes(str string) string {
 
 func main() {
 	var reportPeriod string
+	var targetCurrency currency.Currency
 
 	fmt.Println("Please enter [MM.YYYY] report period:")
 	fmt.Scanln(&reportPeriod)
+
+	fmt.Println("Please enter target currency:")
+	fmt.Scanln(&targetCurrency)
 
 	reportPaths, reportPathsErr := pjcbby2x.FindReportByHeaderPeriod(reportPeriod)
 
@@ -39,6 +44,20 @@ func main() {
 
 	var results [][]string
 	for _, operation := range monthlyOperations {
+		if operation.Currency != targetCurrency {
+			rate, rateErr := currency.GetCurrencyRate(
+				operation.Currency,
+				targetCurrency,
+				datetime.GetMiddlePointByPeriod(reportPeriod),
+			)
+
+			if rateErr != nil {
+				log.Fatal(rateErr)
+			}
+
+			operation.Cost = operation.Cost * rate
+		}
+
 		results = append(results, []string{
 			operation.Date,
 			string(operation.PaymentType),
@@ -50,5 +69,6 @@ func main() {
 		})
 	}
 
+	fmt.Println("Result saved")
 	csv.WriteDataToCSVFile("output.csv", results)
 }

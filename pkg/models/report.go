@@ -1,17 +1,14 @@
 package models
 
+import (
+	"budget-collector/pkg/utils/currency"
+)
+
 type PaymentType string
-type Currency string
 
 const (
 	Cash PaymentType = "наличные"
 	Card PaymentType = "карта"
-)
-
-const (
-	BYN Currency = "BYN"
-	USD Currency = "USD"
-	RUB Currency = "RUB"
 )
 
 type MonthlyReportOperation struct {
@@ -21,6 +18,6 @@ type MonthlyReportOperation struct {
 	Category    string
 	Subcategory string
 	Cost        float64
-	Currency    Currency
+	Currency    currency.Currency
 	Last4       string
 }
