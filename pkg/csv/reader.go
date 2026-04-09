@@ -81,39 +81,37 @@ func ReadAllCSVFile(filePath string) [][]string {
 	return records
 }
 
-// ReadSlicedCSVFile reads a specific range of records from a CSV file.
+// ReadSlicedCSVFile reads the first count records from a CSV file.
 //
-// This function reads only a subset of records from a CSV file, useful for
-// processing large files in chunks or reading specific sections like headers.
-// It's particularly helpful when you only need to examine file metadata or
-// process files in streaming fashion.
+// Records are read sequentially from the start of the file; there is no offset.
+// Use this when you need only a prefix of the file (for example a header plus
+// a few data rows) without loading the whole file.
 //
 // Args:
 //
 //	filePath: string path to the CSV file to read
-//	start:    uint16 starting record index (0-based)
-//	end:      uint16 ending record index (exclusive)
+//	count:    number of CSV records (rows) to read from the beginning
 //
 // Returns:
 //
-//	[][]string: slice containing the requested range of CSV records
+//	[][]string: slice of length count with the first rows of the file
 //
 // Example:
 //
-//	// Read only the first 20 rows (headers and first few data rows)
-//	headerRecords := ReadSlicedCSVFile("bank_report.csv", 0, 20)
+//	// First row only (e.g. header)
+//	header := ReadSlicedCSVFile("bank_report.csv", 1)
 //
-//	// Read rows 100-200 for batch processing
-//	batchRecords := ReadSlicedCSVFile("large_report.csv", 100, 200)
+//	// Header and first 19 data rows
+//	prefix := ReadSlicedCSVFile("bank_report.csv", 20)
 //
-// Note: This function will call log.Fatal() if the requested range exceeds
-// the file length, which will terminate the program.
-func ReadSlicedCSVFile(filePath string, start uint16, end uint16) [][]string {
+// Note: This function calls log.Fatal() if fewer than count records exist or
+// if a row cannot be parsed as CSV.
+func ReadSlicedCSVFile(filePath string, count uint16) [][]string {
 	csvReader, file := getBasicCSVReader(filePath)
 	defer file.Close()
 
 	var records [][]string
-	for i := start; i < end; i++ {
+	for range count {
 		record, err := csvReader.Read()
 		if err != nil {
 			log.Fatal("Unsupported file length "+filePath, err)

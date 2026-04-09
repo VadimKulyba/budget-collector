@@ -51,13 +51,12 @@ func FindReportByHeaderPeriod(period string) ([]string, error) {
 		log.Fatal("Reports not found")
 	}
 
-	const startHeaderPosition = 0
-	const endHeaderPosition = 15
+	const headerLineCount = 13 // 13 headers (15 total lines)
 
 	var paths []string
 	for _, reportPath := range reports {
 		// read report headers
-		records := csv.ReadSlicedCSVFile(reportPath, startHeaderPosition, endHeaderPosition)
+		records := csv.ReadSlicedCSVFile(reportPath, headerLineCount)
 		for _, row := range records {
 			if slices.Contains(row, periodLabel) && slices.Contains(row, periodRange) {
 				paths = append(paths, reportPath)
